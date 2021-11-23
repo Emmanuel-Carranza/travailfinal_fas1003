@@ -1,0 +1,10 @@
+---
+title: "travailfinal_fas1003"
+author: "Emmanuel_Carranza"
+date: "22/11/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
