@@ -33,9 +33,18 @@ Grâce au différente variables enregistrées, je me suis concentré sur les cat
 
 \newpage
 
+# l'importance de la complexité du mot de passe
+
+![image](img/graph2.png) Bien que la banque de données nous indique que la force des mots de passe se limite de 1 a 10 (1 étant le plus faible). On y apercoit 15 au dessus de 10 et 30 mot de passe à 0.
+
+Alors que certain aurait enlevé les observations ne correspondant au niveau des variables, j'ai décider de les garder dans ce cas ci. Les 30 avec la force = 0 sont ceux composer de lettres ou de chiffres avec des répétitions de caractères comme : 1111111 ou voodoo. Ceux se trouvant à plus de 10 sont des mot de passe composé de lettres et de chiffres (ce qui l'est rend plus complexe)
+
+\newpage
+
 # L'importance d'une longueur de caractère
 
-![image](img/graph2.png) Les mots de passe de 4 caractères prennent moins de 10 minute à déchiffrers alors que ceux de 9 et plus peuvent prendre des années jusqu'à des décénnies.
+![image](img/graph3.png) 
+Les mots de passe de 4 caractères prennent moins de 10 minute à déchiffrers alors que ceux de 9 et plus peuvent prendre des années jusqu'à des décénnies.
 
 Ici le temps de décryption est considéré en ligne. Une attaque de mot de passe hors-ligne est beaucoup plus rapide puisqu'elle n'est pas limité par le nombre d'essaie maximal par secondes d'un serveur.
 
@@ -43,9 +52,9 @@ time displayed in logarithmique scale
 
 celui a 9 caractere cest 123456789
 
-![image](img/graph3.png) Bien que la banque de données nous indique que la force des mots de passe se limite de 1 a 10 (1 étant le plus faible). On y apercoit 15 au dessus de 10 et 30 mot de passe à 0.
+le point le plus haut sur le graphique estime un temps de décryption de 92 ans.
 
-Alors que certain aurait enlevé les observations ne correspondant au niveau des variables, j'ai décider de les garder dans ce cas ci. Les 30 avec la force = 0 sont ceux composer de lettres ou de chiffres avec des répétitions de caractères comme : 1111111 ou voodoo. Ceux se trouvant à plus de 10 sont des mot de passe composé de lettres et de chiffres (ce qui l'est rend plus complexe)
+
 
 ```{r, echo=FALSE}
 dat_raw <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-14/passwords.csv')
@@ -94,7 +103,7 @@ dat <- dat_raw %>%
 
 dat <- dat %>%
   mutate(type = case_when(
-    grepl("[A-Za-z]+", password) & grepl("[0-9]+", password) ~ "Chiffres & lettres",
+    grepl("[A-Za-z]+", password) & grepl("[0-9]+", password) ~ "Lettres & chiffres",
     grepl("[A-Za-z]+", password) ~ "Lettres",
     grepl("[0-9]+", password) ~ "Chiffres",
     TRUE ~ as.character(password))) 
@@ -160,13 +169,9 @@ graph2 <- ggplot(data = dat , aes(x = type, y = strength))+
             theme(plot.title = element_text(size = 20L, face = "bold.italic"),
                 axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
 
-
-ggsave("img/graph2.png")
-
-
 graph2
 
-
+ggsave("img/graph2.png")
 ```
 alphabet
 charact
@@ -183,16 +188,15 @@ graph3 <- dat %>%
           geom_point()+
           scale_color_manual(values = c("black", "orange"))+
           geom_smooth(formula = y ~ poly(x,2), method = "lm", color = "#FFBF71")+
-          scale_y_continuous(trans = "log2")+
+          scale_y_continuous(trans = "log2", labels = c("0","8 min", "18 heures", "13 semaines", "34 ans"))+
           labs(x = "Nombre de caractère",
-               y = "",
-          title = "La longueur vs temps de décryption(sec)")+
+               y = "temps sur échelle logarithmique",
+          title = "Longueur vs temps de décryption (échelle log2)",
+          color='Composé de chiffres et lettres')+
           ggthemes::theme_stata() +
-          theme(plot.title = element_text(size = 20L, face = "bold.italic"),
-                axis.text.y = element_text(angle = 0,vjust = 1, hjust=1),
-                legend.title = element_blank())
+          theme(plot.title = element_text(size = 14L, face = "bold"),
+                axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
 
-graph3
 
 ggsave("img/graph3.png")
 ```

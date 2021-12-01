@@ -120,7 +120,7 @@ count_cat <- dat %>%
 class: center
 
 ```{r echo=FALSE, out.height=600, out.width= 700}
-knitr::include_graphics("img/graph3_5.png")
+knitr::include_graphics("img/graph2.png")
 ```
 
 ---
