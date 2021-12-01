@@ -26,6 +26,7 @@ knitr::opts_chunk$set(
   warning = FALSE,
   hiline = TRUE
 )
+library(tidyverse)
 ```
 
 
@@ -78,10 +79,10 @@ class: center
 
 ```{r echo=FALSE, out.height=600, out.width= 700}
 knitr::include_graphics("img/graph1.png")
-
 ```
 
 ---
+
 ## Les différentes catégories (n=500)
 
 .pull-left[
