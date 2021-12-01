@@ -13,11 +13,13 @@
 class: center, middle, inverse, title-slide
 
 # Les mots de passe les plus utilisés
-## Données venant de Data is Beautiful
+## Données venant de Information is Beautiful
 ### Emmanuel Carranza
 ### 2021-12-01
 
 ---
+
+
 
 
 
@@ -34,26 +36,27 @@ class: center
 
 - Password : ex.password1234
 
-- Category: ils y a 10 différentes catégories
+- Category: il y a 10 différentes catégories
 
-- Value : la valeurs du temps utilisé pour décoder
+- Value : la valeur du temps utilisé pour décoder le mot de passe
 
 - Time unit: l'unité de mesure du temps (seconde, heure, jour, mois, année)
 
-- Strength : La force du mot de passe 0 étant le moins fort allant jusqu'a
+- Strength : La force du mot de passe. techiquement de 1 a 10
+            10 étant le plus fort
 
 ---
-# Ce qui rend la clef sécuritaire
+# Ce qui rend la clef sécuritaire :
 
-##- Catégorie (significatif/dictionnaire vs fictif)
-
---
-
-##- Longueur (minimal vs maximal)
+##- Catégorie (significatif vs fictif)
 
 --
 
 ##- Composition (simple vs complexe)
+
+--
+
+##- Longueur (minimal vs maximal)
 
 ---
 class: center
@@ -93,44 +96,15 @@ count_cat &lt;- dat %&gt;%
   count(category, sort=TRUE)
 ```
 ]
-
-
-
 ---
 
 class: center
 
-&lt;img src="img/graph2.png" width="700" height="600" /&gt;
+&lt;img src="img/graph3_5.png" width="700" height="600" /&gt;
 
 ---
 
-# Longueur du mot de passe
-
-.pull-left[
-
-- En moyenne on y retrouve 6 caractère
-
-- Un seul mot de passe a 9 caractères (123456789)
-]
-
-.pull-right[
-&lt;img src="img/length_tibble.png" width="300" height="200" /&gt;
-]
-
-- Décryption en ligne
-- Décryption hors ligne
-
-- De plus, le temps de décryption est en proportion d'une échelle logarithmique puisque certains temps dépassaient largement les autres de facons disproportionné.
-
----
-
-class: center
-
-&lt;img src="img/graph3.png" width="700" height="600" /&gt;
-
----
-
-# 
+# Type de caractère vs force
 
 - Selon Github la force des mots de passe à une échelle de 1 à 10
 
@@ -150,6 +124,30 @@ class: center
 class: center
 
 &lt;img src="img/graph3_withex.png" width="700" height="600" /&gt;
+---
+
+class: center
+
+&lt;img src="img/graph3.png" width="700" height="600" /&gt;
+
+---
+
+# Longueur du mot de passe
+
+.pull-left[
+
+- En moyenne on y retrouve 6 caractères
+
+- Un seul mot de passe a 9 caractères (123456789)
+]
+
+.pull-right[
+&lt;img src="img/length_tibble.png" width="300" height="200" /&gt;
+]
+
+- Décryption en ligne vs hors ligne
+
+- De plus, le temps de décryption est en proportion d'une échelle logarithmique puisque certains temps dépassaient largement les autres de facons disproportionné.
 
 ---
 

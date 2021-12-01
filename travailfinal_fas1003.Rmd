@@ -1,11 +1,10 @@
 ---
-title: "travailfinal_fas1003"
-author: "Emmanuel_Carranza"
+title: "LES PIRES MOTS DE PASSES"
 date: "22/11/2021"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
+```{r, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(regexplain)
@@ -22,7 +21,7 @@ library(patchwork)
 
 On a tout du le faire plusieurs fois. Changer son mot de passe n'est jamais plaisant. Le nouveau mot de passe a comme possibilité d'être entièrement différent ou une variation de son précédant. Peut-etre meme y ajouter quelques chiffres ou symboles pour le rendre plus complexe ?
 
-La banque de données tiré de [Information is Beautiful] (<https://docs.google.com/spreadsheets/d/1cz7TDhm0ebVpySqbTvrHrD3WpxeyE4hLZtifWSnoNTQ/edit#gid=210>) sur les 500 mots de passe les plus utilisé nous donne de tres bons exemples a ne pas repeter. J'ai décidé de l'analyser pour trouver les caractérisiques qui font que ces mots de passe ne sont pas sécuritaire au dela d'être les plus utilisés.
+La banque de données tiré de [Information is Beautiful](https://docs.google.com/spreadsheets/d/1cz7TDhm0ebVpySqbTvrHrD3WpxeyE4hLZtifWSnoNTQ/edit#gid=210) sur les 500 mots de passe les plus utilisé nous donne de très bons exemples à ne pas répéter. J'ai décidé de l'analyser pour trouver les caractérisiques qui font que ces mots de passe ne sont pas sécuritaire au dela d'être les plus utilisés.
 
 Grâce au différente variables enregistrées, je me suis concentré sur les catégories, le temps de décryption face à la longueur des caractères et la facilité d'être piraté en fonction du type de caractère utilisé.
 
@@ -50,10 +49,10 @@ Alors que certain aurait enlevé les observations ne correspondant au niveau des
 
 ```{r, echo=FALSE}
 dat_raw <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-14/passwords.csv')
-
+#importation de la banque de données
 ```
 
-```{r}
+```{r, echo=FALSE}
 dat <- dat_raw %>% 
   mutate(
     time = case_when(
@@ -84,7 +83,7 @@ time_table <- tribble(
 
 <https://github.com/jhrcook/tidy-tuesday/blob/master/2020-06-09_passwords.md>
 
-```{r}
+```{r, echo=FALSE}
 dat <- dat_raw %>%
     na.omit() %>% 
     mutate(password_len = str_length(password))%>% 
@@ -94,14 +93,17 @@ dat <- dat_raw %>%
 #j'enleve tout les NA, rajoute la variable password_len, converti le temps de décryption en secondes pour tous et j'enlève les variables inutiles
 
 dat <- dat %>%
-  mutate(Type = case_when(
-    grepl("[A-Za-z]+", password) & grepl("[0-9]+", password) ~ "Lettres & chiffres",
+  mutate(type = case_when(
+    grepl("[A-Za-z]+", password) & grepl("[0-9]+", password) ~ "Chiffres & lettres",
     grepl("[A-Za-z]+", password) ~ "Lettres",
     grepl("[0-9]+", password) ~ "Chiffres",
-    TRUE ~ as.character(password)))
+    TRUE ~ as.character(password))) 
+
+dat <- dat %>% 
+      mutate(type=as.factor(type))
 
 
-#counting passwords by category only FOR graph 1
+#counting passwords by category only FOR graph1
 count_cat <- dat %>% 
   count(category, sort=TRUE)
 
@@ -119,7 +121,7 @@ both_letters_numbers <- dat[dat$password %like% '([0-9].*[a-zA-Z])|([a-zA-Z].*[0
 mean(str_length(dat$password))
 #moyenne des longueur de caractères est 6.2 donc 6.
 
-length_tibble <- as.tibble(count(dat, password_len, sort = T))
+length_tibble <- as_tibble(count(dat, password_len, sort = T))
 # repartition du nombre de caractère
 
 sum(dat$strength > 10)
@@ -127,16 +129,12 @@ sum(dat$strength > 10)
 
 sum(dat$strength == 0)
 # 30 mots de passe qui ont pour force: 0
-
-
 ```
 
 ```{r}
-graph1 <- ggplot(count_cat, aes(x = reorder(category, -n),
-                                   y = n)) +
+graph1 <- ggplot(count_cat, aes(x = reorder(category, -n), y = n)) +
           geom_bar(stat = "identity", fill = "#FFBF71")+
-          labs(x = " ",
-               y = " ",
+          labs(x = " ", y = " ",
                title = "Les catégories de mauvais mot de passe") +
           theme_stata() +
           theme(plot.title = element_text(size = 20L, face = "bold.italic"),
@@ -153,29 +151,7 @@ ggsave("img/graph1.png")
 - pourquoi axis text blank, pourquoi, jai pas mis le nom de X ou Y
 
 ```{r}
-graph2 <- ggplot(data = dat, aes(x=(password_len), y=guess_crack_sec)) + 
-          geom_point()+
-          geom_smooth(formula = y ~ poly(x,2), method = "lm", color = "#FFBF71")+
-          scale_y_continuous(trans = "log2")+
-          labs(x = "Nombre de caractère",
-               y = "Temps en secondes",
-          title = "La longueur du mot de passe \n vs le temps de décryption")+
-          ggthemes::theme_stata() +
-          theme(plot.title = element_text(size = 20L, face = "bold.italic"),
-                axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
-
-
-ggsave("img/graph2.png")
-```
-
-TALK ABOUT LOG SCALE and why POLY LM
-
-
-
-```{r}
-#all my data's 3 visualisations gg plots
-
-graph3 <- ggplot(data = dat , aes(x = Type, y = strength))+
+graph2 <- ggplot(data = dat , aes(x = type, y = strength))+
               geom_boxplot(fill = "#FFBF71")+
               labs(x = " ",
                y = " ",
@@ -185,9 +161,40 @@ graph3 <- ggplot(data = dat , aes(x = Type, y = strength))+
                 axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
 
 
+ggsave("img/graph2.png")
+
+
+graph2
+
+
+```
+alphabet
+charact
+TALK ABOUT LOG SCALE and why POLY LM
+
+
+
+```{r}
+dat <- dat %>%
+      mutate(type=as.factor(type))
+
+graph3 <- dat %>%
+          ggplot(aes(x=(password_len), y=guess_crack_sec, color = type == "Chiffres & lettres"))+
+          geom_point()+
+          scale_color_manual(values = c("black", "orange"))+
+          geom_smooth(formula = y ~ poly(x,2), method = "lm", color = "#FFBF71")+
+          scale_y_continuous(trans = "log2")+
+          labs(x = "Nombre de caractère",
+               y = "",
+          title = "La longueur vs temps de décryption(sec)")+
+          ggthemes::theme_stata() +
+          theme(plot.title = element_text(size = 20L, face = "bold.italic"),
+                axis.text.y = element_text(angle = 0,vjust = 1, hjust=1),
+                legend.title = element_blank())
+
+graph3
+
 ggsave("img/graph3.png")
-
-
 ```
 
 - pourquoi labs blank

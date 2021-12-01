@@ -1,6 +1,6 @@
 ---
 title: "Les mots de passe les plus utilisés"
-subtitle: "Données venant de Data is Beautiful"  
+subtitle: "Données venant de Information is Beautiful"  
 author: 
   - "Emmanuel Carranza"
 date: '`r Sys.Date()`'
@@ -28,6 +28,7 @@ knitr::opts_chunk$set(
 )
 ```
 
+
 ```{r xaringan-themer, include=FALSE, warning=FALSE}
 library(xaringanthemer)
 style_duo_accent(
@@ -36,6 +37,7 @@ style_duo_accent(
   inverse_header_color = "#FFFFFF"
 )
 ```
+
 ---
 class: center
 
@@ -49,26 +51,27 @@ knitr::include_graphics("img/intro.jpg")
 
 - Password : ex.password1234
 
-- Category: ils y a 10 différentes catégories
+- Category: il y a 10 différentes catégories
 
-- Value : la valeurs du temps utilisé pour décoder
+- Value : la valeur du temps utilisé pour décoder le mot de passe
 
 - Time unit: l'unité de mesure du temps (seconde, heure, jour, mois, année)
 
-- Strength : La force du mot de passe 0 étant le moins fort allant jusqu'a
+- Strength : La force du mot de passe. techiquement de 1 a 10
+            10 étant le plus fort
 
 ---
-# Ce qui rend la clef sécuritaire
+# Ce qui rend la clef sécuritaire :
 
-##- Catégorie (significatif/dictionnaire vs fictif)
-
---
-
-##- Longueur (minimal vs maximal)
+##- Catégorie (significatif vs fictif)
 
 --
 
 ##- Composition (simple vs complexe)
+
+--
+
+##- Longueur (minimal vs maximal)
 
 ---
 class: center
@@ -111,50 +114,17 @@ count_cat <- dat %>%
   count(category, sort=TRUE)
 ```
 ]
-
-
-
 ---
 
 class: center
 
 ```{r echo=FALSE, out.height=600, out.width= 700}
-knitr::include_graphics("img/graph2.png")
+knitr::include_graphics("img/graph3_5.png")
 ```
 
 ---
 
-# Longueur du mot de passe
-
-.pull-left[
-
-- En moyenne on y retrouve 6 caractère
-
-- Un seul mot de passe a 9 caractères (123456789)
-]
-
-.pull-right[
-```{r, echo=FALSE, out.height=200, out.width= 300}
-knitr::include_graphics("img/length_tibble.png")
-```
-]
-
-- Décryption en ligne
-- Décryption hors ligne
-
-- De plus, le temps de décryption est en proportion d'une échelle logarithmique puisque certains temps dépassaient largement les autres de facons disproportionné.
-
----
-
-class: center
-
-```{r echo=FALSE, out.height=600, out.width= 700}
-knitr::include_graphics("img/graph3.png")
-```
-
----
-
-# 
+# Type de caractère vs force
 
 - Selon Github la force des mots de passe à une échelle de 1 à 10
 
@@ -176,9 +146,35 @@ class: center
 ```{r echo=FALSE, out.height=600, out.width= 700}
 knitr::include_graphics("img/graph3_withex.png")
 ```
+---
+
+class: center
+
+```{r echo=FALSE, out.height=600, out.width= 700}
+knitr::include_graphics("img/graph3.png")
+```
+
+---
+
+# Longueur du mot de passe
+
+.pull-left[
+
+- En moyenne on y retrouve 6 caractères
+
+- Un seul mot de passe a 9 caractères (123456789)
+]
+
+.pull-right[
+```{r, echo=FALSE, out.height=200, out.width= 300}
+knitr::include_graphics("img/length_tibble.png")
+```
+]
+
+- Décryption en ligne vs hors ligne
+
+- De plus, le temps de décryption est en proportion d'une échelle logarithmique puisque certains temps dépassaient largement les autres de facons disproportionné.
 
 ---
 
 background-image: url(img/thatsall.gif)
-
----
