@@ -2,66 +2,45 @@
 title: "LES PIRES MOTS DE PASSES"
 date: "22/11/2021"
 output: pdf_document
+theme: distill
+      
 ---
 
-```{r, include=FALSE}
+#Les packages que j'ai utilisé tout le long de mon analyse.
+```{r, echo=T, results='hide', message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(regexplain)
 library(glue)
+library(distill)
 library(ggthemes)
 library(data.table)
 library(janitor)
 library(ggbeeswarm)
 library(tinytex)
-library(patchwork)
 ```
 
-# Visualisation des mots des passes les plus utilisés
+# Visualisation des 500 mots des passes les plus utilisés
 
-On a tout du le faire plusieurs fois. Changer son mot de passe n'est jamais plaisant. Le nouveau mot de passe a comme possibilité d'être entièrement différent ou une variation de son précédant. Peut-etre meme y ajouter quelques chiffres ou symboles pour le rendre plus complexe ?
+On a tout dû le faire plusieurs fois. Changer son mot de passe n'est jamais plaisant. Le nouveau mot de passe a comme possibilité d'être entièrement différent ou une variation de son précédant. Peut-être même y ajouter quelques chiffres ou symboles pour le rendre plus complexe ?
 
-La banque de données tiré de [Information is Beautiful](https://docs.google.com/spreadsheets/d/1cz7TDhm0ebVpySqbTvrHrD3WpxeyE4hLZtifWSnoNTQ/edit#gid=210) sur les 500 mots de passe les plus utilisé nous donne de très bons exemples à ne pas répéter. J'ai décidé de l'analyser pour trouver les caractérisiques qui font que ces mots de passe ne sont pas sécuritaire au dela d'être les plus utilisés.
+La banque de données tirée de [Information is Beautiful](https://docs.google.com/spreadsheets/d/1cz7TDhm0ebVpySqbTvrHrD3WpxeyE4hLZtifWSnoNTQ/edit#gid=210) sur les 500 mots de passe les plus utilisés de 2017 nous donnent de très bons exemples à ne pas répéter.J'ai décidé de l'analyser pour trouver les caractéristiques qui font que ces mots de passe ne sont pas sécuritaires au-delà d'être les plus utilisés.
 
-Grâce au différente variables enregistrées, je me suis concentré sur les catégories, le temps de décryption face à la longueur des caractères et la facilité d'être piraté en fonction du type de caractère utilisé.
+Grâce aux différentes variables enregistrées, je me suis concentré sur les catégories, le temps de décryptage face à la longueur des caractères et la facilité d'être piraté en fonction du type de caractère utilisé.
 
-# L'importance de la provenance du mot de passe
+# Données
+```{r, echo=T, results='hide', message=FALSE}
+tuesdata <- tidytuesdayR::tt_load('2020-01-14') 
 
-![image](img/graph1.png) - plus de 50% de mots de passe considéré comme mauvais ici vienent de 2 catégories : Name et Cool-Macho.
+dat_raw <- tuesdata$passwords
 
--   Que ce soit un prénom ou un mot sortie directement du dictionnaire : ce n'est pas un bonne idée.
-
-\newpage
-
-# l'importance de la complexité du mot de passe
-
-![image](img/graph2.png) Bien que la banque de données nous indique que la force des mots de passe se limite de 1 a 10 (1 étant le plus faible). On y apercoit 15 au dessus de 10 et 30 mot de passe à 0.
-
-Alors que certain aurait enlevé les observations ne correspondant au niveau des variables, j'ai décider de les garder dans ce cas ci. Les 30 avec la force = 0 sont ceux composer de lettres ou de chiffres avec des répétitions de caractères comme : 1111111 ou voodoo. Ceux se trouvant à plus de 10 sont des mot de passe composé de lettres et de chiffres (ce qui l'est rend plus complexe)
-
-\newpage
-
-# L'importance d'une longueur de caractère
-
-![image](img/graph3.png) 
-Les mots de passe de 4 caractères prennent moins de 10 minute à déchiffrers alors que ceux de 9 et plus peuvent prendre des années jusqu'à des décénnies.
-
-Ici le temps de décryption est considéré en ligne. Une attaque de mot de passe hors-ligne est beaucoup plus rapide puisqu'elle n'est pas limité par le nombre d'essaie maximal par secondes d'un serveur.
-
-time displayed in logarithmique scale
-
-celui a 9 caractere cest 123456789
-
-le point le plus haut sur le graphique estime un temps de décryption de 92 ans.
-
-
-
-```{r, echo=FALSE}
-dat_raw <- read_csv('https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-14/passwords.csv')
-#importation de la banque de données
+summary(dat_raw)
 ```
+J'importe et regarde l'ensemble des variables. Il y a 507 observations dont 7 qui sont N.A. Rank indique la popularité du mot de passe, 1 étant le plus populaire. Password est le mot de passe tel quel. Category sépare les mots de passe en 10 catégories. Value me donne la valeur du temps de décryptage et time_unit associe la valeur à une unité de temps (secondes, minutes, heures, journées, semaines, mois, années). Offline_crack_sec représente le temps de décryptage en secondes si on utilise une attaque de décryptage hors-ligne. Rank_Alt est une alternative au premier rank (presque similaire). Strength représente la force/sécurité du mot de passe sur une échelle.(1 étant faible et 10 fort). Pour finir, font_size est une variable pour le fichier original qui sert à créer le graphique pour KIB.
 
-```{r, echo=FALSE}
+
+# Conversion temps 
+```{r, echo=T, results='hide'}
 dat <- dat_raw %>% 
   mutate(
     time = case_when(
@@ -72,9 +51,7 @@ dat <- dat_raw %>%
       time_unit == "weeks" ~ value * 60 * 24 * 7,
       time_unit == "months" ~ value * 60 * 24 * 30,
       time_unit == "years" ~ value * 60 * 24 * 365,
-      TRUE ~ NA_real_
-    )
-  ) 
+      TRUE ~ NA_real_ )) 
 
 time_table <- tribble(
     ~ time_unit, ~ in_sec,
@@ -84,136 +61,155 @@ time_table <- tribble(
     "days", 60*60*24,
     "hours", 60*60,
     "minutes", 60,
-    "seconds",  1
-)
+    "seconds",  1 )
 ```
+J'ai pris ce code à [Cedric Scherer, 2020](https://github.com/z3tt/TidyTuesday/blob/master/R/2020_03_Passwords.Rmd) pour être capable de donner le temps total de décryptage en seconde pour tous grâce à la conversion.
 
-# J'ai pris ce chunk de code Joshua Cook, 2020
 
-<https://github.com/jhrcook/tidy-tuesday/blob/master/2020-06-09_passwords.md>
 
-```{r, echo=FALSE}
+# Modification données
+```{r, echo=T, results='hide'}
 dat <- dat_raw %>%
     na.omit() %>% 
     mutate(password_len = str_length(password))%>% 
     left_join(time_table, by = "time_unit") %>%
-    mutate(guess_crack_sec = value * in_sec) %>%
-    select(-c(in_sec, value, time_unit,rank_alt,offline_crack_sec, font_size))
-#j'enleve tout les NA, rajoute la variable password_len, converti le temps de décryption en secondes pour tous et j'enlève les variables inutiles
-
+    mutate(guess_crack_sec = value * in_sec)
+    
+    
 dat <- dat %>%
   mutate(type = case_when(
     grepl("[A-Za-z]+", password) & grepl("[0-9]+", password) ~ "Lettres & chiffres",
     grepl("[A-Za-z]+", password) ~ "Lettres",
     grepl("[0-9]+", password) ~ "Chiffres",
-    TRUE ~ as.character(password))) 
+    TRUE ~ as.character(password))) %>%
+  select(-c(in_sec, value, time_unit,rank_alt,offline_crack_sec, font_size))
+  
+```
+Je crée un nouveau dataset avec les modifications qui conviennent à mon analyse. J'enlève tous les N.A et rajoute la variable password_len pour avoir la longueur de caractères des mots de passe. Je convertis le temps de décryptage en secondes pour tous les observations grâce à time_unit que j'ai créé plus haut. 
 
-dat <- dat %>% 
-      mutate(type=as.factor(type))
+Création d'une nouvelle variable "type" qui indique si le mot de passe contient seulement des lettres, seulement des chiffres ou s'il est composé des deux. Je termine par enlever les colonnes/variables qui ne seront pas inspectées cette fois-ci.
 
-
-#counting passwords by category only FOR graph1
+# Analyse
+```{r, echo=T, results='hide'}
 count_cat <- dat %>% 
   count(category, sort=TRUE)
+#Je crée un nouveau data set à partir de "dat" qui contient seulement les 
+#différentes catégories ainsi que la somme des mots de passe qui les constitue.
 
-#new data with just passwords containing only numbers
+
 just_numbers <- dat[dat$password %like% "^[0-9]*$", ]
+#Je crée un sous-ensemble des mots de passe constitués seulement de chiffres.
+#Il y en a 40 en tout donc 8% de mon ensemble de données.
 
 
-#data frame password only letters
 just_letters <- dat[dat$password %like% "^[a-zA-Z]+$", ]
+# Je crée un sous-ensemble des mots de passe constitués seulement de lettres.
+#Il y en a 446 en tout donc 89.2% de mon ensemble de données.
 
 
-#dataframe password letters and numbers only
 both_letters_numbers <- dat[dat$password %like% '([0-9].*[a-zA-Z])|([a-zA-Z].*[0-9])', ]
+# Je crée un sous-ensemble des mots de passes constitués de lettres et de
+# chiffres. Il y en a 446 en tout donc 89.2% de mon ensemble de données.
 
 mean(str_length(dat$password))
-#moyenne des longueur de caractères est 6.2 donc 6.
+#moyenne de longueur en caractère des mots de passe est 6.2
 
 length_tibble <- as_tibble(count(dat, password_len, sort = T))
-# repartition du nombre de caractère
+# répartition de la distribution par rapport au nombre de caractères.
+# on est moins étonné de la moyenne quand on voit que 50% de l'échantillon
+# a 6 caractères. 
 
 sum(dat$strength > 10)
-# 15 mot de passe qui ont pour force plus de 10
+# 15 mots de passe qui ont pour force plus de 10.
 
 sum(dat$strength == 0)
 # 30 mots de passe qui ont pour force: 0
+# En tout (15 + 30)/500 = 9% des mots de passe ont une force de sécurité ne
+# correspondant pas au niveau de la variable (1 a 10) tel que décrite dans le
+# dictionnaire des données sur Github. Je décide de ne pas les enlever de ma
+# banque de données, car ceux a 0 sont les plus simples (avec répétition de
+# caractère continue) et ceux au-dessus de 10 sont les plus
+# complexes (avec lettres et chiffres).
 ```
 
-```{r}
+
+
+# Graphique 1
+```{r, echo=T, results='hide'}
 graph1 <- ggplot(count_cat, aes(x = reorder(category, -n), y = n)) +
           geom_bar(stat = "identity", fill = "#FFBF71")+
           labs(x = " ", y = " ",
                title = "Les catégories de mauvais mot de passe") +
           theme_stata() +
-          theme(plot.title = element_text(size = 20L, face = "bold.italic"),
+          theme(plot.title = element_text(size = 20L, face = "bold"),
                 axis.text.x = element_text(angle = 35,vjust = 1, hjust=1),
                 axis.text.y = element_blank(),
                 axis.ticks.y = element_blank())+
           geom_text(aes(label = n), vjust = -0.1)
 
-
-ggsave("img/graph1.png")
+suppressMessages(ggsave("img/graph1.png"))
 ```
+Pour mon premier graphique, j'ai décidé de garder ça simple avec un graphique à barres qui représente la somme des mots de passe dans chaque catégorie. J'ai décidé d'arranger les catégories en ordre croissant par rapport à la somme pour une meilleure représentation visuelle qui permet de mieux les comparer. J'ai supprimé la description des axes puisque c'est déjà bien expliquer grâce au titre, au label(n) sur les barres et avec le nom des catégories. J'ai aussi donné un angle au catégories pour qu'elles soient lisible à la place de les poser à la verticale. Pour finir j'ai ajouté un geom_text qui indique la somme des mots de passe accordés à chaque catégorie.
 
-- faut expliquer pourquoi jai pris ce graphique et type
-- pourquoi axis text blank, pourquoi, jai pas mis le nom de X ou Y
 
-```{r}
+# Graphique 2
+```{r, echo=T, results='hide'}
 graph2 <- ggplot(data = dat , aes(x = type, y = strength))+
               geom_boxplot(fill = "#FFBF71")+
-              labs(x = " ",
-               y = " ",
-               title = "Type de caractère vs sa force")+
+              labs(x = " ", y = "Niveau de sécurité",
+                    title = "Type de caractère VS sa force")+
               ggthemes::theme_stata()+
-            theme(plot.title = element_text(size = 20L, face = "bold.italic"),
+            theme(plot.title = element_text(size = 20L, face = "bold"),
                 axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
 
-graph2
-
-ggsave("img/graph2.png")
+suppressMessages(ggsave("img/graph2.png"))
 ```
-alphabet
-charact
-TALK ABOUT LOG SCALE and why POLY LM
+J'ai pris un geom_boxplot pour mieux illustrer l'écart de force/sécurité du mot de passe entre les différents types. Encore une fois j'ai supprimé la description des variables puisque je trouvais cela assez clair avec le titre et les axes.
 
 
+# Graphique 3
 
-```{r}
+```{r, echo=T, results='hide'}
+class(dat$type)
+# Je constate que type est une variable "character".
+
 dat <- dat %>%
       mutate(type=as.factor(type))
+# J'ai convertis la variable type en facteur pour pouvoir
+# faire le graphique suivant.
+
 
 graph3 <- dat %>%
-          ggplot(aes(x=(password_len), y=guess_crack_sec, color = type == "Chiffres & lettres"))+
+          ggplot(aes(x=(password_len), 
+                     y=guess_crack_sec, 
+                     color = type == "Lettres & chiffres"))+
           geom_point()+
           scale_color_manual(values = c("black", "orange"))+
-          geom_smooth(formula = y ~ poly(x,2), method = "lm", color = "#FFBF71")+
-          scale_y_continuous(trans = "log2", labels = c("0","8 min", "18 heures", "13 semaines", "34 ans"))+
+          geom_smooth(formula = y ~ log(x), method = "lm", color = "#FFBF71")+
+          scale_y_continuous(trans = "log2", 
+                             labels = c("0","8 min", "18 heures", "13 semaines", "34 ans"))+
           labs(x = "Nombre de caractère",
-               y = "temps sur échelle logarithmique",
-          title = "Longueur vs temps de décryption (échelle log2)",
+               y = "Temps sur échelle logarithmique",
+          title = "Longueur VS temps de décryption en ligne (échelle log2)",
           color='Composé de chiffres et lettres')+
           ggthemes::theme_stata() +
           theme(plot.title = element_text(size = 14L, face = "bold"),
-                axis.text.y = element_text(angle = 0,vjust = 1, hjust=1))
+                axis.text.y = element_text(angle = 0,vjust = 0.2, hjust=1))
 
-
-ggsave("img/graph3.png")
+suppressMessages(ggsave("img/graph3.png"))
 ```
+J'ai commencé par comparer la longueur des mots de passe au temps de décryptage avec un geom_point. J'ai remarquer que les temps de décryptage étaient dispropotionnés les un aux autres comme je l'indique au graphique 4 plus bas. C'est pour cette raison que j'ai positionné l'axe Y sur une échelle logarithmique à fin mieux voir l'effet du nombre de caractère sur le temps de décryption. J'ai même changé l'équivalence du temps en secondes pour des unités plus représentatives et faciles à comprendre. Le texte de l'axis Y a aussi légèrement été ajusté pour agencer l'esthétique.
 
-- pourquoi labs blank
--pourquoi boxplot
+J'ai aussi ajouté un geom_smooth avec un modèle linéaire correspondant à la modification de l'axe Y en log pour mieux démontrer la tendance. Je n'ai pas choisi les autres types de modèle comme "glm", "gam" ou "loess" à cause de la taille de mon échantillon et des observations incluses. De plus, j'ai ajouté une troisième variable correspondant aux mots de passe qui sont constitués de chiffres et de lettres (puisqu'ils sont plus sécuritaires). Ces observations ont été coloriée par des points orange pour garder les couleurs que j'ai choisies depuis le début.
 
-# GROUP DATA BY CHUNK genre les 25 premier plus utiliser moyenne de decryption 50 moyen de decryption 70 etc et faire graphique
+Pour finir j'ai décidé de bien indiquer la description de l'axe des X, Y(avec échelle) et la légende puisqu'il y a beaucoup d'information sur le graphique.
 
-DIRE A LA FIN SQUE JE VOUDRAIS APPRENDRE POUR FAIRE NEXT TIME OU SQUE JAI MANQUER
+# Graphique sans échelle logarithmique du temps
+```{r, echo=T, results='hide'}
+graph4 <- dat %>% 
+          ggplot(aes(x=(password_len), y=guess_crack_sec))+
+                   geom_point()
 
-SQUE JVEUX VRMT FAIRE CEST SCRAPER LES 1000 PLUS UTLISER SUR WIKI ET DAUTRE SITE ET REFAIRE MON DERNIER GRAPHIQUE MAIS JAI PAS EU LE TEMPS.
-
-genre je devrais plus approfondir dans les regex ou nahhh genre apronfondire mes graphiques i guesss idk...
-
-ben puisque le daat vient de 2014 peut-etre avoir les mots de passe de 2015-16 jsuqua 2021 serait cool pour appronfondir les changements et ceux qui reste toujours
-
-aussi les categories sont vrmt arbitraires et plates pis jveut savoir qui a fait ca.
-
-DIT QUE TA ESSAYER 100K mais ta pas dautre variable vrmt
+suppressMessages(ggsave("img/graph4.png"))
+```
+Le graphique 4 a été créé pour expliquer mon raisonnement derrière le choix de l'échelle logarithmique pour l'axe des Y. Je pense que ce graphique est encore moins clair et moins intuitif que le graph3.
